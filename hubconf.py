@@ -17,8 +17,10 @@ log = logging.getLogger("waifuxl")
 
 class _WaifuXL():
 
-    def __init__(self, onnxFile):
+    def __init__(self, onnxFile, map_location=None):
         self.session = ort.InferenceSession(onnxFile)
+        if map_location == torch.device('cpu'):
+            self.session.set_providers(['CPUExecutionProvider'])
         inputs = self.session.get_inputs()
         for i in range(len(inputs)):
             log.debug("Input[{}]: name={}, shape={}, type={}".format(i, inputs[i].name, inputs[i].shape, inputs[i].type))
@@ -39,7 +41,7 @@ class _WaifuXL():
         log.debug("Output: {}".format(output.shape))
         return output
 
-def WaifuXL(progress=True):
+def WaifuXL(progress=True, map_location=None):
 
     BASE_URL = "https://github.com/TheFutureGadgetsLab/WaifuXL/archive/refs/tags"
     VERSION = "1.5.0"
@@ -58,4 +60,4 @@ def WaifuXL(progress=True):
             os.makedirs(TARGET, exist_ok=True)
             shutil.copy(os.path.join(tmp, "WaifuXL-{}".format(VERSION), "public", "models", FILENAME), TARGET)
    
-    return _WaifuXL(os.path.join(TARGET, FILENAME))
+    return _WaifuXL(os.path.join(TARGET, FILENAME), map_location=map_location)
